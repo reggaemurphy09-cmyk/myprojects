@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="theme-color" content="#0a1628"/>
@@ -56,6 +56,7 @@ body::before {
   z-index: 0;
 }
 
+/* SCREENS */
 .screen {
   display: none;
   position: fixed;
@@ -63,14 +64,16 @@ body::before {
   z-index: 50;
   flex-direction: column;
   background: var(--navy);
-  padding-top: var(--sat);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .screen.active {
   display: flex;
 }
 
+/* LOADING SCREEN */
 #scr-loading {
   align-items: center;
   justify-content: center;
@@ -109,14 +112,26 @@ body::before {
   margin-top: 16px;
 }
 
+/* WELCOME - FIXED SCROLLING */
+#scr-welcome {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 20px calc(40px + var(--sab));
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .wlc-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   max-width: 340px;
-  margin: auto;
-  padding: 40px 20px;
+  margin: 0 auto;
+  padding: 20px 0;
 }
 
 .wlc-logo {
@@ -148,7 +163,7 @@ body::before {
 
 .wlc-ship {
   font-size: 5rem;
-  margin-bottom: 24px;
+  margin: 20px 0;
   animation: float 3s ease-in-out infinite;
 }
 
@@ -159,10 +174,11 @@ body::before {
 
 .wlc-title {
   font-family: 'Syne', sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 800;
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  line-height: 1.3;
 }
 
 .wlc-title em {
@@ -171,7 +187,7 @@ body::before {
 }
 
 .wlc-desc {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--muted);
   text-align: center;
   max-width: 280px;
@@ -223,8 +239,15 @@ body::before {
   cursor: pointer;
 }
 
+/* AUTH SCREENS */
+#scr-login, #scr-register, #scr-admin-login {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 0;
+}
+
 .auth-wrap {
-  padding: 24px 24px calc(48px + var(--sab));
+  padding: 20px 24px 40px;
   max-width: 400px;
   margin: 0 auto;
   width: 100%;
@@ -239,6 +262,7 @@ body::before {
   color: var(--muted);
   margin-bottom: 28px;
   cursor: pointer;
+  font-size: 0.9rem;
 }
 
 .auth-logo {
@@ -348,13 +372,19 @@ body::before {
   gap: 10px;
 }
 
+/* MAIN APP */
+#scr-app {
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .topbar {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px 12px;
-  background: rgba(10,22,40,0.92);
+  padding: 14px 20px;
+  background: rgba(10,22,40,0.95);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
   z-index: 10;
@@ -401,6 +431,7 @@ body::before {
   color: var(--muted);
   cursor: pointer;
   padding: 4px 8px;
+  font-size: 1rem;
 }
 
 .scroll {
@@ -426,7 +457,7 @@ body::before {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 0 8px;
+  padding: 10px 0;
   background: transparent;
   border: none;
   color: var(--muted);
@@ -448,8 +479,9 @@ body::before {
   display: block;
 }
 
+/* HERO SECTION */
 .hero {
-  padding: 28px 20px 20px;
+  padding: 28px 20px;
   text-align: center;
   background: linear-gradient(180deg, rgba(30,111,168,0.15) 0%, transparent 100%);
 }
@@ -484,6 +516,7 @@ body::before {
   margin: 0 auto;
 }
 
+/* FORM */
 .fw {
   padding: 0 16px 80px;
 }
@@ -630,6 +663,7 @@ body::before {
   cursor: pointer;
 }
 
+/* HISTORY */
 .hw {
   padding: 16px 16px 80px;
 }
@@ -672,6 +706,7 @@ body::before {
   gap: 7px;
   overflow-x: auto;
   margin-bottom: 16px;
+  padding-bottom: 4px;
 }
 
 .hfp {
@@ -683,6 +718,7 @@ body::before {
   font-size: 0.78rem;
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .hfp.active {
@@ -724,25 +760,10 @@ body::before {
   font-weight: 600;
 }
 
-.hspill.pending {
-  background: rgba(244,192,84,0.1);
-  color: var(--gold);
-}
-
-.hspill.processing {
-  background: rgba(77,184,232,0.1);
-  color: var(--foam);
-}
-
-.hspill.sent {
-  background: rgba(46,204,138,0.1);
-  color: var(--success);
-}
-
-.hspill.cancelled {
-  background: rgba(176,107,224,0.1);
-  color: var(--cancel);
-}
+.hspill.pending { background: rgba(244,192,84,0.1); color: var(--gold); }
+.hspill.processing { background: rgba(77,184,232,0.1); color: var(--foam); }
+.hspill.sent { background: rgba(46,204,138,0.1); color: var(--success); }
+.hspill.cancelled { background: rgba(176,107,224,0.1); color: var(--cancel); }
 
 .hcard-amt .ha {
   font-family: 'Syne', sans-serif;
@@ -774,12 +795,13 @@ body::before {
   color: var(--danger);
 }
 
+/* MODAL */
 .modal-overlay {
   display: none;
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.8);
   align-items: flex-end;
   justify-content: center;
   backdrop-filter: blur(6px);
@@ -795,7 +817,7 @@ body::before {
   border-radius: 24px 24px 0 0;
   width: 100%;
   max-width: 520px;
-  max-height: 90vh;
+  max-height: 85vh;
   overflow-y: auto;
 }
 
@@ -818,6 +840,7 @@ body::before {
   height: 32px;
   border-radius: 50%;
   cursor: pointer;
+  font-size: 1rem;
 }
 
 .modal-body {
@@ -870,9 +893,10 @@ body::before {
   cursor: pointer;
 }
 
+/* TOAST */
 .toast {
   position: fixed;
-  bottom: calc(var(--sab) + 72px);
+  bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--ocean);
@@ -884,6 +908,7 @@ body::before {
   transition: 0.2s;
   z-index: 500;
   pointer-events: none;
+  white-space: nowrap;
 }
 
 .toast.show {
@@ -891,6 +916,13 @@ body::before {
   transform: translateX(-50%) translateY(-10px);
 }
 
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+/* Desktop Styles */
 @media (min-width: 768px) {
   .modal-overlay {
     align-items: center;
@@ -910,17 +942,42 @@ body::before {
     border-radius: 24px;
     padding: 40px;
   }
+  .toast {
+    bottom: 24px;
+  }
+}
+
+/* Fix for very small screens */
+@media (max-height: 600px) {
+  .wlc-ship {
+    font-size: 3rem;
+    margin: 10px 0;
+  }
+  .wlc-title {
+    font-size: 1.4rem;
+  }
+  .wlc-desc {
+    font-size: 0.8rem;
+    margin-bottom: 20px;
+  }
+  .wlc-btns .btn-primary,
+  .wlc-btns .btn-secondary,
+  .wlc-btns .btn-admin {
+    padding: 12px;
+  }
 }
 </style>
 </head>
 <body>
 
+<!-- LOADING SCREEN -->
 <div class="screen active" id="scr-loading">
   <div class="loading-logo">⚓ Ship<span class="acc">Remit</span></div>
   <div class="spinner"></div>
   <div class="loading-text">Connecting to secure database...</div>
 </div>
 
+<!-- WELCOME SCREEN - FIXED SCROLLING -->
 <div class="screen" id="scr-welcome">
   <div class="wlc-inner">
     <div class="wlc-logo">⚓ Ship<span class="acc">Remit</span><span class="wlc-dot"></span></div>
@@ -935,6 +992,7 @@ body::before {
   </div>
 </div>
 
+<!-- LOGIN SCREEN -->
 <div class="screen" id="scr-login">
   <div class="auth-wrap">
     <button class="auth-back" onclick="showScreen('scr-welcome')">← Back</button>
@@ -948,6 +1006,7 @@ body::before {
   </div>
 </div>
 
+<!-- REGISTER SCREEN -->
 <div class="screen" id="scr-register">
   <div class="auth-wrap">
     <button class="auth-back" onclick="showScreen('scr-welcome')">← Back</button>
@@ -967,6 +1026,7 @@ body::before {
   </div>
 </div>
 
+<!-- ADMIN LOGIN SCREEN -->
 <div class="screen" id="scr-admin-login">
   <div class="auth-wrap">
     <button class="auth-back" onclick="showScreen('scr-welcome')">← Back</button>
@@ -980,6 +1040,7 @@ body::before {
   </div>
 </div>
 
+<!-- MAIN APP SCREEN -->
 <div class="screen" id="scr-app">
   <div class="topbar">
     <div class="logo">⚓ Ship<span class="acc">Remit</span></div>
@@ -1025,7 +1086,7 @@ body::before {
     <div class="page" id="page-admin">
       <div class="fw">
         <div class="hero" style="padding:20px;"><h2 style="font-size:1.4rem;">📋 Admin Dashboard</h2><p>Manage all remittance requests</p></div>
-        <div class="filters" style="display:flex;gap:8px;margin-bottom:16px;"><button class="hfp active" onclick="setAdminFilter('all',this)">All</button><button class="hfp" onclick="setAdminFilter('Pending',this)">Pending</button><button class="hfp" onclick="setAdminFilter('Processing',this)">Processing</button><button class="hfp" onclick="setAdminFilter('Sent',this)">Sent</button></div>
+        <div class="filters" style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;"><button class="hfp active" onclick="setAdminFilter('all',this)">All</button><button class="hfp" onclick="setAdminFilter('Pending',this)">Pending</button><button class="hfp" onclick="setAdminFilter('Processing',this)">Processing</button><button class="hfp" onclick="setAdminFilter('Sent',this)">Sent</button></div>
         <div class="txlist" id="admin-list"></div>
       </div>
     </div>
@@ -1033,6 +1094,7 @@ body::before {
   <nav class="bnav" id="bnav"></nav>
 </div>
 
+<!-- EDIT MODAL -->
 <div class="modal-overlay" id="edit-modal" onclick="closeEditModal(event)">
   <div class="modal-box">
     <div class="modal-header"><div><div class="modal-title">✏️ Edit Request</div><div class="modal-ref" style="font-size:0.7rem;color:var(--foam);" id="modal-ref">SR-000</div></div><button class="modal-close" onclick="closeEditModal()">✕</button></div>
@@ -1048,6 +1110,7 @@ body::before {
     <div class="modal-footer"><button class="modal-btn-cancel" onclick="closeEditModal()">Cancel</button><button class="modal-btn-save" onclick="saveEdit()">Save Changes</button></div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1085,7 +1148,7 @@ setTimeout(() => {
   if (document.getElementById('scr-loading').classList.contains('active')) {
     showScreen('scr-welcome');
   }
-}, 2500);
+}, 2000);
 
 function togglePw(id, btn) {
   const inp = document.getElementById(id);
@@ -1232,6 +1295,7 @@ function goTab(t) {
   if (btn) btn.classList.add('active');
   if (t === 'history') renderHistory();
   if (t === 'admin') renderAdmin();
+  document.getElementById('scroll').scrollTop = 0;
 }
 
 function calcAmt() {
@@ -1294,6 +1358,7 @@ async function doSubmit() {
     document.getElementById('rnum').textContent = ref;
     document.getElementById('fview').style.display = 'none';
     document.getElementById('sview').classList.add('show');
+    document.getElementById('scroll').scrollTop = 0;
   } catch (e) {
     showToast('❌ Error: ' + e.message);
   }
@@ -1310,6 +1375,7 @@ function doNew() {
   document.getElementById('pprev').src = '';
   document.getElementById('pci').style.display = 'block';
   document.querySelector('.pt').style.display = 'block';
+  document.getElementById('scroll').scrollTop = 0;
 }
 
 function renderHistory() {
@@ -1448,6 +1514,7 @@ function showToast(msg) {
   } catch (e) {}
 })();
 
+// Make functions global
 window.calcAmt = calcAmt;
 window.prevPic = prevPic;
 window.doSubmit = doSubmit;
