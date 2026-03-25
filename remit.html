@@ -46,17 +46,6 @@ html, body {
   font-size: 16px;
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse 70% 50% at 15% 0%, rgba(30,111,168,0.22) 0%, transparent 55%),
-              radial-gradient(ellipse 50% 40% at 85% 100%, rgba(13,31,60,0.7) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* SCREENS */
 .screen {
   display: none;
   position: fixed;
@@ -73,7 +62,6 @@ body::before {
   display: flex;
 }
 
-/* LOADING SCREEN */
 #scr-loading {
   align-items: center;
   justify-content: center;
@@ -106,19 +94,9 @@ body::before {
   to { transform: rotate(360deg); }
 }
 
-.loading-text {
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-top: 16px;
-}
-
-/* WELCOME - FIXED SCROLLING */
 #scr-welcome {
   overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding: 20px 20px calc(40px + var(--sab));
-  min-height: 100%;
+  padding: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -202,48 +180,34 @@ body::before {
   gap: 12px;
 }
 
-.btn-primary {
+.btn-primary, .btn-secondary, .btn-admin {
   width: 100%;
-  padding: 17px;
-  background: linear-gradient(135deg, var(--wave), var(--foam));
-  border: none;
+  padding: 16px;
   border-radius: 14px;
-  color: white;
-  font-family: 'Syne', sans-serif;
-  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 24px rgba(30,111,168,0.4);
   transition: opacity 0.15s;
+  border: none;
+  font-size: 1rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--wave), var(--foam));
+  color: white;
 }
 
 .btn-secondary {
-  width: 100%;
-  padding: 16px;
   background: rgba(255,255,255,0.05);
   border: 1.5px solid var(--border);
-  border-radius: 14px;
   color: var(--white);
   font-weight: 500;
-  cursor: pointer;
 }
 
 .btn-admin {
-  width: 100%;
-  padding: 14px;
   background: rgba(244,192,84,0.08);
   border: 1.5px solid rgba(244,192,84,0.25);
-  border-radius: 14px;
   color: var(--gold);
   font-weight: 500;
-  cursor: pointer;
-}
-
-/* AUTH SCREENS */
-#scr-login, #scr-register, #scr-admin-login {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 20px 0;
 }
 
 .auth-wrap {
@@ -287,12 +251,6 @@ body::before {
   font-style: normal;
 }
 
-.auth-sub {
-  font-size: 0.875rem;
-  color: var(--muted);
-  margin-bottom: 28px;
-}
-
 .field {
   margin-bottom: 14px;
 }
@@ -314,10 +272,6 @@ body::before {
   color: var(--white);
   font-size: 1rem;
   outline: none;
-}
-
-.field input:focus, .field select:focus {
-  border-color: var(--foam);
 }
 
 .field-pw {
@@ -372,12 +326,6 @@ body::before {
   gap: 10px;
 }
 
-/* MAIN APP */
-#scr-app {
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .topbar {
   flex-shrink: 0;
   display: flex;
@@ -399,10 +347,6 @@ body::before {
   gap: 6px;
 }
 
-.logo .acc {
-  color: var(--gold);
-}
-
 .user-chip {
   display: flex;
   align-items: center;
@@ -410,7 +354,7 @@ body::before {
   background: rgba(255,255,255,0.05);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 5px 10px 5px 6px;
+  padding: 5px 10px;
 }
 
 .user-avatar {
@@ -479,7 +423,6 @@ body::before {
   display: block;
 }
 
-/* HERO SECTION */
 .hero {
   padding: 28px 20px;
   text-align: center;
@@ -509,14 +452,6 @@ body::before {
   color: var(--gold);
 }
 
-.hero p {
-  color: var(--muted);
-  font-size: 0.875rem;
-  max-width: 280px;
-  margin: 0 auto;
-}
-
-/* FORM */
 .fw {
   padding: 0 16px 80px;
 }
@@ -651,28 +586,8 @@ body::before {
   letter-spacing: 2px;
 }
 
-.bhist, .bnew {
-  width: 100%;
-  padding: 15px;
-  background: rgba(255,255,255,0.05);
-  border: 1.5px solid var(--border);
-  border-radius: 14px;
-  color: var(--white);
-  font-weight: 500;
-  margin-top: 8px;
-  cursor: pointer;
-}
-
-/* HISTORY */
 .hw {
   padding: 16px 16px 80px;
-}
-
-.hhead h2 {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.2rem;
-  font-weight: 800;
-  margin-bottom: 4px;
 }
 
 .hsum {
@@ -694,11 +609,6 @@ body::before {
   font-family: 'Syne', sans-serif;
   font-size: 1.2rem;
   font-weight: 800;
-}
-
-.hsc .hsl {
-  font-size: 0.65rem;
-  color: var(--muted);
 }
 
 .hfilters {
@@ -740,18 +650,6 @@ body::before {
   padding: 14px 16px;
 }
 
-.hcard-ref {
-  font-family: 'Syne', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--foam);
-}
-
-.hcard-time {
-  font-size: 0.7rem;
-  color: var(--muted);
-}
-
 .hspill {
   display: inline-flex;
   padding: 4px 10px;
@@ -764,13 +662,6 @@ body::before {
 .hspill.processing { background: rgba(77,184,232,0.1); color: var(--foam); }
 .hspill.sent { background: rgba(46,204,138,0.1); color: var(--success); }
 .hspill.cancelled { background: rgba(176,107,224,0.1); color: var(--cancel); }
-
-.hcard-amt .ha {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--gold);
-}
 
 .hbtn-edit, .hbtn-cancel {
   padding: 9px 14px;
@@ -795,7 +686,6 @@ body::before {
   color: var(--danger);
 }
 
-/* MODAL */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -827,12 +717,6 @@ body::before {
   padding: 20px 20px 0;
 }
 
-.modal-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 800;
-}
-
 .modal-close {
   background: rgba(255,255,255,0.07);
   border: 1px solid var(--border);
@@ -845,25 +729,6 @@ body::before {
 
 .modal-body {
   padding: 16px 20px;
-}
-
-.modal-section {
-  font-family: 'Syne', sans-serif;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--foam);
-  margin: 0 0 12px;
-}
-
-.modal-amtbox {
-  background: rgba(244,192,84,0.07);
-  border: 1.5px solid rgba(244,192,84,0.2);
-  border-radius: 12px;
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
 }
 
 .modal-footer {
@@ -893,7 +758,6 @@ body::before {
   cursor: pointer;
 }
 
-/* TOAST */
 .toast {
   position: fixed;
   bottom: 80px;
@@ -909,6 +773,10 @@ body::before {
   z-index: 500;
   pointer-events: none;
   white-space: nowrap;
+  max-width: 90%;
+  text-align: center;
+  white-space: normal;
+  word-wrap: break-word;
 }
 
 .toast.show {
@@ -922,7 +790,6 @@ body::before {
   color: var(--muted);
 }
 
-/* Desktop Styles */
 @media (min-width: 768px) {
   .modal-overlay {
     align-items: center;
@@ -930,54 +797,20 @@ body::before {
   .modal-box {
     border-radius: 20px;
   }
-  .wlc-inner {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 48px 40px;
-  }
-  .auth-wrap {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 40px;
-  }
   .toast {
     bottom: 24px;
-  }
-}
-
-/* Fix for very small screens */
-@media (max-height: 600px) {
-  .wlc-ship {
-    font-size: 3rem;
-    margin: 10px 0;
-  }
-  .wlc-title {
-    font-size: 1.4rem;
-  }
-  .wlc-desc {
-    font-size: 0.8rem;
-    margin-bottom: 20px;
-  }
-  .wlc-btns .btn-primary,
-  .wlc-btns .btn-secondary,
-  .wlc-btns .btn-admin {
-    padding: 12px;
   }
 }
 </style>
 </head>
 <body>
 
-<!-- LOADING SCREEN -->
 <div class="screen active" id="scr-loading">
   <div class="loading-logo">⚓ Ship<span class="acc">Remit</span></div>
   <div class="spinner"></div>
   <div class="loading-text">Connecting to secure database...</div>
 </div>
 
-<!-- WELCOME SCREEN - FIXED SCROLLING -->
 <div class="screen" id="scr-welcome">
   <div class="wlc-inner">
     <div class="wlc-logo">⚓ Ship<span class="acc">Remit</span><span class="wlc-dot"></span></div>
@@ -992,21 +825,19 @@ body::before {
   </div>
 </div>
 
-<!-- LOGIN SCREEN -->
 <div class="screen" id="scr-login">
   <div class="auth-wrap">
     <button class="auth-back" onclick="showScreen('scr-welcome')">← Back</button>
     <div class="auth-logo">⚓ Ship<span class="acc">Remit</span></div>
     <h2 class="auth-heading">Welcome<br/><em>back</em></h2>
     <div class="auth-err" id="login-err"></div>
-    <div class="field"><label>Email</label><input type="email" id="li-email" placeholder="crew@example.com"/></div>
+    <div class="field"><label>Email</label><input type="email" id="li-email" placeholder="user@example.com"/></div>
     <div class="field"><label>Password</label><div class="field-pw"><input type="password" id="li-pw" placeholder="••••••••"/><button class="pw-toggle" onclick="togglePw('li-pw',this)">👁</button></div></div>
     <button class="btn-primary" onclick="doLogin()">Sign In</button>
     <div class="auth-link">No account? <button onclick="showScreen('scr-register')">Register</button></div>
   </div>
 </div>
 
-<!-- REGISTER SCREEN -->
 <div class="screen" id="scr-register">
   <div class="auth-wrap">
     <button class="auth-back" onclick="showScreen('scr-welcome')">← Back</button>
@@ -1026,7 +857,6 @@ body::before {
   </div>
 </div>
 
-<!-- ADMIN LOGIN SCREEN -->
 <div class="screen" id="scr-admin-login">
   <div class="auth-wrap">
     <button class="auth-back" onclick="showScreen('scr-welcome')">← Back</button>
@@ -1037,10 +867,13 @@ body::before {
     <div class="field"><label>Email</label><input type="email" id="adm-email" placeholder="admin@shipremit.com"/></div>
     <div class="field"><label>Password</label><div class="field-pw"><input type="password" id="adm-pw"/><button class="pw-toggle" onclick="togglePw('adm-pw',this)">👁</button></div></div>
     <button class="btn-primary" onclick="doAdminLogin()" style="background:linear-gradient(135deg,#7c4daa,var(--cancel));">Admin Sign In</button>
+    <div class="auth-link" style="margin-top: 16px; font-size: 0.75rem;">
+      <p>Default admin: admin@shipremit.com / Admin123!</p>
+      <p>Or create a regular account first</p>
+    </div>
   </div>
 </div>
 
-<!-- MAIN APP SCREEN -->
 <div class="screen" id="scr-app">
   <div class="topbar">
     <div class="logo">⚓ Ship<span class="acc">Remit</span></div>
@@ -1094,7 +927,6 @@ body::before {
   <nav class="bnav" id="bnav"></nav>
 </div>
 
-<!-- EDIT MODAL -->
 <div class="modal-overlay" id="edit-modal" onclick="closeEditModal(event)">
   <div class="modal-box">
     <div class="modal-header"><div><div class="modal-title">✏️ Edit Request</div><div class="modal-ref" style="font-size:0.7rem;color:var(--foam);" id="modal-ref">SR-000</div></div><button class="modal-close" onclick="closeEditModal()">✕</button></div>
@@ -1162,7 +994,8 @@ function firebaseErrMsg(code) {
     'auth/invalid-email': 'Invalid email address.',
     'auth/weak-password': 'Password must be at least 6 characters.',
     'auth/user-not-found': 'No account found.',
-    'auth/wrong-password': 'Incorrect password.'
+    'auth/wrong-password': 'Incorrect password.',
+    'auth/network-request-failed': 'Network error. Check your connection.'
   };
   return msgs[code] || 'Authentication error.';
 }
@@ -1181,6 +1014,8 @@ async function doRegister() {
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, pw);
     await db.ref('users/' + cred.user.uid).set({ fn, ln, email, phone, role: 'sender' });
+    showToast('Account created! Please sign in.');
+    showScreen('scr-login');
   } catch (e) {
     err.textContent = firebaseErrMsg(e.code);
     err.classList.add('show');
@@ -1191,6 +1026,7 @@ async function doLogin() {
   const email = document.getElementById('li-email').value.trim();
   const pw = document.getElementById('li-pw').value;
   const err = document.getElementById('login-err');
+  if (!email || !pw) { err.textContent = 'Please enter email and password'; err.classList.add('show'); return; }
   try {
     await auth.signInWithEmailAndPassword(email, pw);
   } catch (e) {
@@ -1203,13 +1039,16 @@ async function doAdminLogin() {
   const email = document.getElementById('adm-email').value.trim();
   const pw = document.getElementById('adm-pw').value;
   const err = document.getElementById('admin-err');
+  if (!email || !pw) { err.textContent = 'Please enter credentials'; err.classList.add('show'); return; }
   try {
     const cred = await auth.signInWithEmailAndPassword(email, pw);
     const snap = await db.ref('users/' + cred.user.uid).once('value');
-    if (!snap.val() || snap.val().role !== 'admin') {
+    const profile = snap.val();
+    if (!profile || profile.role !== 'admin') {
       await auth.signOut();
-      err.textContent = 'Admin access required.';
+      err.textContent = 'Admin access required. This account is not an admin.';
       err.classList.add('show');
+      return;
     }
   } catch (e) {
     err.textContent = firebaseErrMsg(e.code);
@@ -1218,30 +1057,43 @@ async function doAdminLogin() {
 }
 
 async function doLogout() {
-  if (txListener) { db.ref('transactions').off(); txListener = null; }
+  if (txListener) { 
+    if (typeof txListener.off === 'function') txListener.off();
+    txListener = null;
+  }
   await auth.signOut();
+  showToast('Logged out');
 }
 
 auth.onAuthStateChanged(async user => {
   if (user) {
     currentUser = user;
-    const snap = await db.ref('users/' + user.uid).once('value');
-    currentProfile = snap.val() || { fn: 'User', ln: '', role: 'sender' };
-    isAdmin = currentProfile.role === 'admin';
-    initApp();
+    try {
+      const snap = await db.ref('users/' + user.uid).once('value');
+      currentProfile = snap.val() || { fn: 'User', ln: '', role: 'sender' };
+      isAdmin = currentProfile.role === 'admin';
+      initApp();
+    } catch (e) {
+      console.error('Error fetching user profile:', e);
+      showToast('Error loading profile. Please refresh.');
+    }
   } else {
     currentUser = null;
     currentProfile = null;
     isAdmin = false;
-    if (txListener) { db.ref('transactions').off(); txListener = null; }
+    if (txListener) { 
+      if (typeof txListener.off === 'function') txListener.off();
+      txListener = null;
+    }
     showScreen('scr-welcome');
   }
 });
 
 function initApp() {
   showScreen('scr-app');
-  document.getElementById('user-avatar').textContent = currentProfile.fn[0].toUpperCase();
-  document.getElementById('user-name-display').textContent = isAdmin ? 'Admin' : currentProfile.fn;
+  const name = isAdmin ? 'Admin' : (currentProfile.fn || 'User');
+  document.getElementById('user-avatar').textContent = (currentProfile.fn || 'U')[0].toUpperCase();
+  document.getElementById('user-name-display').textContent = name;
   
   const nav = document.getElementById('bnav');
   if (isAdmin) {
@@ -1301,7 +1153,7 @@ function goTab(t) {
 function calcAmt() {
   const v = parseFloat(document.getElementById('amt').value);
   const box = document.getElementById('abox');
-  if (v > 0) {
+  if (v > 0 && !isNaN(v)) {
     box.classList.add('show');
     document.getElementById('anum').textContent = '$' + (v + 10);
   } else {
@@ -1334,11 +1186,11 @@ async function doSubmit() {
   const am = parseFloat(document.getElementById('amt').value);
   const photo = document.getElementById('pprev').src;
   
-  if (!fn || !ln || !ph || !rn || !rc || !rb || !ra || !am) {
-    showToast('⚠️ Please fill all fields');
+  if (!fn || !ln || !ph || !rn || !rc || !rb || !ra) {
+    showToast('⚠️ Please fill all required fields');
     return;
   }
-  if (am < 10) { showToast('⚠️ Minimum $10'); return; }
+  if (!am || am < 10) { showToast('⚠️ Minimum amount is $10'); return; }
   
   const btn = document.getElementById('bsub');
   btn.disabled = true;
@@ -1359,8 +1211,10 @@ async function doSubmit() {
     document.getElementById('fview').style.display = 'none';
     document.getElementById('sview').classList.add('show');
     document.getElementById('scroll').scrollTop = 0;
+    showToast('✅ Request submitted! Reference: ' + ref);
   } catch (e) {
     showToast('❌ Error: ' + e.message);
+    console.error(e);
   }
   btn.disabled = false;
   btn.textContent = 'Submit Request →';
@@ -1408,9 +1262,13 @@ function setHF(f, btn) {
 }
 
 async function senderCancelTx(key) {
-  if (!confirm('Cancel this request?')) return;
-  await db.ref('transactions/' + key).update({ status: 'Cancelled' });
-  showToast('✅ Cancelled');
+  if (!confirm('Cancel this request? This cannot be undone.')) return;
+  try {
+    await db.ref('transactions/' + key).update({ status: 'Cancelled' });
+    showToast('✅ Request cancelled');
+  } catch (e) {
+    showToast('Error: ' + e.message);
+  }
 }
 
 function openEditModal(key) {
@@ -1446,9 +1304,13 @@ async function saveEdit() {
   const amount = parseFloat(document.getElementById('em-amount').value);
   if (!rname || !bank || !account || !amount) { showToast('Fill all fields'); return; }
   if (amount < 10) { showToast('Minimum $10'); return; }
-  await db.ref('transactions/' + editingKey).update({ recipient: rname, country, bank, account, amount });
-  closeEditModal();
-  showToast('✅ Updated');
+  try {
+    await db.ref('transactions/' + editingKey).update({ recipient: rname, country, bank, account, amount });
+    closeEditModal();
+    showToast('✅ Updated');
+  } catch (e) {
+    showToast('Error: ' + e.message);
+  }
 }
 
 function renderAdmin() {
@@ -1473,14 +1335,22 @@ function renderAdmin() {
 }
 
 async function adminSetStatus(key, status) {
-  await db.ref('transactions/' + key).update({ status });
-  showToast(`Status → ${status}`);
+  try {
+    await db.ref('transactions/' + key).update({ status });
+    showToast(`Status → ${status}`);
+  } catch (e) {
+    showToast('Error: ' + e.message);
+  }
 }
 
 async function adminCancelTx(key) {
-  if (!confirm('Cancel?')) return;
-  await db.ref('transactions/' + key).update({ status: 'Cancelled' });
-  showToast('Cancelled');
+  if (!confirm('Cancel this request?')) return;
+  try {
+    await db.ref('transactions/' + key).update({ status: 'Cancelled' });
+    showToast('Cancelled');
+  } catch (e) {
+    showToast('Error: ' + e.message);
+  }
 }
 
 function setAdminFilter(f, btn) {
@@ -1494,24 +1364,56 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 // Create default admin account on first run
-(async () => {
+(async function setupAdminAccount() {
   try {
-    const setupFlag = await db.ref('adminSetup').once('value');
-    if (!setupFlag.val()) {
-      try {
-        const cred = await auth.createUserWithEmailAndPassword('admin@shipremit.com', 'Admin123!');
-        await db.ref('users/' + cred.user.uid).set({ fn: 'Admin', ln: 'ShipRemit', email: 'admin@shipremit.com', phone: '', role: 'admin' });
+    const adminEmail = 'admin@shipremit.com';
+    const adminPassword = 'Admin123!';
+    
+    // Check if admin already exists in database
+    const adminCheck = await db.ref('adminSetup').once('value');
+    if (adminCheck.val()) return;
+    
+    // Try to create admin account
+    try {
+      const userCred = await auth.createUserWithEmailAndPassword(adminEmail, adminPassword);
+      await db.ref('users/' + userCred.user.uid).set({
+        fn: 'Admin',
+        ln: 'ShipRemit',
+        email: adminEmail,
+        phone: '',
+        role: 'admin'
+      });
+      await db.ref('adminSetup').set(true);
+      console.log('✅ Admin account created successfully');
+      await auth.signOut();
+    } catch (e) {
+      if (e.code === 'auth/email-already-in-use') {
+        // Admin exists in Auth, check if role is set in DB
+        const signInResult = await auth.signInWithEmailAndPassword(adminEmail, adminPassword);
+        const userSnap = await db.ref('users/' + signInResult.user.uid).once('value');
+        if (!userSnap.val() || userSnap.val().role !== 'admin') {
+          await db.ref('users/' + signInResult.user.uid).set({
+            fn: 'Admin',
+            ln: 'ShipRemit',
+            email: adminEmail,
+            phone: '',
+            role: 'admin'
+          });
+        }
+        await auth.signOut();
         await db.ref('adminSetup').set(true);
-        console.log('Admin account created');
-      } catch (e) {
-        if (e.code !== 'auth/email-already-in-use') console.log(e);
+        console.log('✅ Admin role verified');
+      } else {
+        console.log('Admin setup note:', e.message);
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.log('Admin setup skipped:', e.message);
+  }
 })();
 
 // Make functions global
