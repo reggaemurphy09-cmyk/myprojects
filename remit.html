@@ -94,6 +94,23 @@ html, body {
   to { transform: rotate(360deg); }
 }
 
+/* Button Spinner */
+.btn-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 #scr-welcome {
   overflow-y: auto;
   padding: 20px;
@@ -189,6 +206,16 @@ html, body {
   transition: opacity 0.15s;
   border: none;
   font-size: 1rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary:disabled, .btn-secondary:disabled, .btn-admin:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-primary {
@@ -272,6 +299,10 @@ html, body {
   color: var(--white);
   font-size: 1rem;
   outline: none;
+}
+
+.field input:focus, .field select:focus {
+  border-color: var(--foam);
 }
 
 .field-pw {
@@ -543,8 +574,19 @@ html, body {
   color: white;
   font-family: 'Syne', sans-serif;
   font-weight: 700;
+  font-size: 1rem;
   margin-top: 20px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+
+.bsub:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .sview {
@@ -873,7 +915,6 @@ html, body {
     <div class="auth-link" style="margin-top: 16px; font-size: 0.75rem;">
       <p>Default Admin Credentials:</p>
       <p><strong>admin@shipremit.com</strong> / <strong>Admin123!</strong></p>
-      <p style="margin-top: 8px;">These are automatically created when the app first runs.</p>
     </div>
   </div>
 </div>
@@ -907,7 +948,7 @@ html, body {
           <div class="abox" id="abox"><div><div class="al">Total + $10 fee</div></div><div class="anum" id="anum">$0</div></div>
           <div class="slabel">Cash Photo (optional)</div>
           <div class="pzone"><input type="file" accept="image/*" id="cpic" onchange="prevPic(this)"/><div class="pci" id="pci">📷</div><div class="pt">Tap to capture cash</div><img class="prev" id="pprev"/></div>
-          <button class="bsub" onclick="doSubmit()">Submit Request →</button>
+          <button class="bsub" id="submitBtn" onclick="doSubmit()">Submit Request →</button>
         </div>
       </div>
       <div class="sview" id="sview"><div class="sci">✓</div><h2>Request Submitted!</h2><p class="ss">Reference number for agent handover</p><div class="rcard"><div class="rl">Reference</div><div class="rn" id="rnum">SR-0000</div></div><div class="sview-btns"><button class="bhist" onclick="goTab('history')">📋 History</button><button class="bnew" onclick="doNew()">+ New Request</button></div></div>
@@ -974,79 +1015,33 @@ let adminFilter = 'all';
 let editingKey = null;
 let txListener = null;
 
-// AUTO CREATE ADMIN ACCOUNT - THIS RUNS AUTOMATICALLY
+// AUTO CREATE ADMIN ACCOUNT
 async function autoCreateAdminAccount() {
   try {
-    console.log("Checking if admin account exists...");
-    
-    // First, check if admin already exists in database
     const adminCheck = await db.ref('adminSetup').once('value');
+    if (adminCheck.val() === true) return;
     
-    if (adminCheck.val() === true) {
-      console.log("Admin account already set up");
-      return;
-    }
-    
-    console.log("Creating admin account...");
-    
-    // Try to create the admin user
     try {
       const userCred = await auth.createUserWithEmailAndPassword('admin@shipremit.com', 'Admin123!');
-      const adminUid = userCred.user.uid;
-      
-      // Add admin role to database
-      await db.ref('users/' + adminUid).set({
-        fn: 'Admin',
-        ln: 'ShipRemit',
-        email: 'admin@shipremit.com',
-        phone: '',
-        role: 'admin'
+      await db.ref('users/' + userCred.user.uid).set({
+        fn: 'Admin', ln: 'ShipRemit', email: 'admin@shipremit.com', phone: '', role: 'admin'
       });
-      
-      // Mark as setup complete
       await db.ref('adminSetup').set(true);
-      console.log("✅ Admin account created successfully!");
-      showToast('Admin account created! You can now login as admin');
-      
-      // Sign out so user can login fresh
+      console.log("✅ Admin account created!");
       await auth.signOut();
-      
     } catch (createError) {
-      // If admin already exists in Auth but not in DB
       if (createError.code === 'auth/email-already-in-use') {
-        console.log("Admin email already exists, checking role...");
-        
-        // Try to sign in to get the UID
-        try {
-          const signInResult = await auth.signInWithEmailAndPassword('admin@shipremit.com', 'Admin123!');
-          const existingUid = signInResult.user.uid;
-          
-          // Check if user has admin role in DB
-          const userSnap = await db.ref('users/' + existingUid).once('value');
-          
-          if (!userSnap.val() || userSnap.val().role !== 'admin') {
-            // Update or create admin role
-            await db.ref('users/' + existingUid).set({
-              fn: 'Admin',
-              ln: 'ShipRemit',
-              email: 'admin@shipremit.com',
-              phone: '',
-              role: 'admin'
-            });
-            console.log("✅ Admin role added to existing account");
-          }
-          
-          await db.ref('adminSetup').set(true);
-          await auth.signOut();
-          
-        } catch (signError) {
-          console.log("Could not sign in with default password, admin may have different password");
+        const signInResult = await auth.signInWithEmailAndPassword('admin@shipremit.com', 'Admin123!');
+        const userSnap = await db.ref('users/' + signInResult.user.uid).once('value');
+        if (!userSnap.val() || userSnap.val().role !== 'admin') {
+          await db.ref('users/' + signInResult.user.uid).set({
+            fn: 'Admin', ln: 'ShipRemit', email: 'admin@shipremit.com', phone: '', role: 'admin'
+          });
         }
-      } else {
-        console.log("Admin creation error:", createError.message);
+        await db.ref('adminSetup').set(true);
+        await auth.signOut();
       }
     }
-    
   } catch (error) {
     console.error("Admin setup error:", error);
   }
@@ -1058,7 +1053,6 @@ function showScreen(id) {
   document.querySelectorAll('.auth-err').forEach(e => e.classList.remove('show'));
 }
 
-// Auto-hide loading screen after 2 seconds
 setTimeout(() => {
   if (document.getElementById('scr-loading').classList.contains('active')) {
     showScreen('scr-welcome');
@@ -1169,7 +1163,6 @@ auth.onAuthStateChanged(async user => {
       txListener = null;
     }
     showScreen('scr-welcome');
-    // Run admin setup when no user is logged in
     autoCreateAdminAccount();
   }
 });
@@ -1260,6 +1253,17 @@ function prevPic(inp) {
   }
 }
 
+// Function to show loading spinner on button
+function setButtonLoading(button, isLoading, loadingText = 'Submitting...', normalText = 'Submit Request →') {
+  if (isLoading) {
+    button.disabled = true;
+    button.innerHTML = '<span class="btn-spinner"></span> ' + loadingText;
+  } else {
+    button.disabled = false;
+    button.innerHTML = normalText;
+  }
+}
+
 async function doSubmit() {
   const fn = document.getElementById('s-fn').value.trim();
   const ln = document.getElementById('s-ln').value.trim();
@@ -1271,15 +1275,19 @@ async function doSubmit() {
   const am = parseFloat(document.getElementById('amt').value);
   const photo = document.getElementById('pprev').src;
   
+  // Validate all required fields
   if (!fn || !ln || !ph || !rn || !rc || !rb || !ra) {
     showToast('⚠️ Please fill all required fields');
     return;
   }
-  if (!am || am < 10) { showToast('⚠️ Minimum amount is $10'); return; }
+  if (!am || am < 10) { 
+    showToast('⚠️ Minimum amount is $10'); 
+    return;
+  }
   
-  const btn = document.getElementById('bsub');
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
+  const btn = document.getElementById('submitBtn');
+  setButtonLoading(btn, true, 'Submitting request...', 'Submit Request →');
+  
   const ref = 'SR-' + Math.floor(100000 + Math.random() * 900000);
   
   try {
@@ -1292,17 +1300,19 @@ async function doSubmit() {
       status: 'Pending',
       time: Date.now()
     });
+    
     document.getElementById('rnum').textContent = ref;
     document.getElementById('fview').style.display = 'none';
     document.getElementById('sview').classList.add('show');
     document.getElementById('scroll').scrollTop = 0;
-    showToast('✅ Request submitted! Reference: ' + ref);
+    showToast('✅ Request submitted successfully! Reference: ' + ref);
+    
   } catch (e) {
     showToast('❌ Error: ' + e.message);
-    console.error(e);
+    console.error('Submit error:', e);
+  } finally {
+    setButtonLoading(btn, false, 'Submitting...', 'Submit Request →');
   }
-  btn.disabled = false;
-  btn.textContent = 'Submit Request →';
 }
 
 function doNew() {
