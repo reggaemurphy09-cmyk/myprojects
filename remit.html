@@ -808,7 +808,7 @@ html, body {
 <div class="screen active" id="scr-loading">
   <div class="loading-logo">⚓ Ship<span class="acc">Remit</span></div>
   <div class="spinner"></div>
-  <div class="loading-text">Connecting to secure database...</div>
+  <div class="loading-text">Setting up secure database...</div>
 </div>
 
 <div class="screen" id="scr-welcome">
@@ -821,6 +821,9 @@ html, body {
       <button class="btn-primary" onclick="showScreen('scr-login')">Sign In</button>
       <button class="btn-secondary" onclick="showScreen('scr-register')">Create Account</button>
       <button class="btn-admin" onclick="showScreen('scr-admin-login')">⚙️ Admin Login</button>
+    </div>
+    <div style="margin-top: 20px; font-size: 0.7rem; color: var(--muted); text-align: center;">
+      Default Admin: admin@shipremit.com / Admin123!
     </div>
   </div>
 </div>
@@ -864,12 +867,13 @@ html, body {
     <div style="background:rgba(244,192,84,0.1);border:1px solid rgba(244,192,84,0.3);color:var(--gold);display:inline-block;padding:4px 12px;border-radius:20px;margin-bottom:16px;">⚙️ Admin Access</div>
     <h2 class="auth-heading">Admin<br/><em>Login</em></h2>
     <div class="auth-err" id="admin-err"></div>
-    <div class="field"><label>Email</label><input type="email" id="adm-email" placeholder="admin@shipremit.com"/></div>
-    <div class="field"><label>Password</label><div class="field-pw"><input type="password" id="adm-pw"/><button class="pw-toggle" onclick="togglePw('adm-pw',this)">👁</button></div></div>
+    <div class="field"><label>Email</label><input type="email" id="adm-email" placeholder="admin@shipremit.com" value="admin@shipremit.com"/></div>
+    <div class="field"><label>Password</label><div class="field-pw"><input type="password" id="adm-pw" value="Admin123!"/><button class="pw-toggle" onclick="togglePw('adm-pw',this)">👁</button></div></div>
     <button class="btn-primary" onclick="doAdminLogin()" style="background:linear-gradient(135deg,#7c4daa,var(--cancel));">Admin Sign In</button>
     <div class="auth-link" style="margin-top: 16px; font-size: 0.75rem;">
-      <p>Default admin: admin@shipremit.com / Admin123!</p>
-      <p>Or create a regular account first</p>
+      <p>Default Admin Credentials:</p>
+      <p><strong>admin@shipremit.com</strong> / <strong>Admin123!</strong></p>
+      <p style="margin-top: 8px;">These are automatically created when the app first runs.</p>
     </div>
   </div>
 </div>
@@ -970,12 +974,91 @@ let adminFilter = 'all';
 let editingKey = null;
 let txListener = null;
 
+// AUTO CREATE ADMIN ACCOUNT - THIS RUNS AUTOMATICALLY
+async function autoCreateAdminAccount() {
+  try {
+    console.log("Checking if admin account exists...");
+    
+    // First, check if admin already exists in database
+    const adminCheck = await db.ref('adminSetup').once('value');
+    
+    if (adminCheck.val() === true) {
+      console.log("Admin account already set up");
+      return;
+    }
+    
+    console.log("Creating admin account...");
+    
+    // Try to create the admin user
+    try {
+      const userCred = await auth.createUserWithEmailAndPassword('admin@shipremit.com', 'Admin123!');
+      const adminUid = userCred.user.uid;
+      
+      // Add admin role to database
+      await db.ref('users/' + adminUid).set({
+        fn: 'Admin',
+        ln: 'ShipRemit',
+        email: 'admin@shipremit.com',
+        phone: '',
+        role: 'admin'
+      });
+      
+      // Mark as setup complete
+      await db.ref('adminSetup').set(true);
+      console.log("✅ Admin account created successfully!");
+      showToast('Admin account created! You can now login as admin');
+      
+      // Sign out so user can login fresh
+      await auth.signOut();
+      
+    } catch (createError) {
+      // If admin already exists in Auth but not in DB
+      if (createError.code === 'auth/email-already-in-use') {
+        console.log("Admin email already exists, checking role...");
+        
+        // Try to sign in to get the UID
+        try {
+          const signInResult = await auth.signInWithEmailAndPassword('admin@shipremit.com', 'Admin123!');
+          const existingUid = signInResult.user.uid;
+          
+          // Check if user has admin role in DB
+          const userSnap = await db.ref('users/' + existingUid).once('value');
+          
+          if (!userSnap.val() || userSnap.val().role !== 'admin') {
+            // Update or create admin role
+            await db.ref('users/' + existingUid).set({
+              fn: 'Admin',
+              ln: 'ShipRemit',
+              email: 'admin@shipremit.com',
+              phone: '',
+              role: 'admin'
+            });
+            console.log("✅ Admin role added to existing account");
+          }
+          
+          await db.ref('adminSetup').set(true);
+          await auth.signOut();
+          
+        } catch (signError) {
+          console.log("Could not sign in with default password, admin may have different password");
+        }
+      } else {
+        console.log("Admin creation error:", createError.message);
+      }
+    }
+    
+  } catch (error) {
+    console.error("Admin setup error:", error);
+  }
+}
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.auth-err').forEach(e => e.classList.remove('show'));
 }
 
+// Auto-hide loading screen after 2 seconds
 setTimeout(() => {
   if (document.getElementById('scr-loading').classList.contains('active')) {
     showScreen('scr-welcome');
@@ -1086,6 +1169,8 @@ auth.onAuthStateChanged(async user => {
       txListener = null;
     }
     showScreen('scr-welcome');
+    // Run admin setup when no user is logged in
+    autoCreateAdminAccount();
   }
 });
 
@@ -1366,55 +1451,6 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
-
-// Create default admin account on first run
-(async function setupAdminAccount() {
-  try {
-    const adminEmail = 'admin@shipremit.com';
-    const adminPassword = 'Admin123!';
-    
-    // Check if admin already exists in database
-    const adminCheck = await db.ref('adminSetup').once('value');
-    if (adminCheck.val()) return;
-    
-    // Try to create admin account
-    try {
-      const userCred = await auth.createUserWithEmailAndPassword(adminEmail, adminPassword);
-      await db.ref('users/' + userCred.user.uid).set({
-        fn: 'Admin',
-        ln: 'ShipRemit',
-        email: adminEmail,
-        phone: '',
-        role: 'admin'
-      });
-      await db.ref('adminSetup').set(true);
-      console.log('✅ Admin account created successfully');
-      await auth.signOut();
-    } catch (e) {
-      if (e.code === 'auth/email-already-in-use') {
-        // Admin exists in Auth, check if role is set in DB
-        const signInResult = await auth.signInWithEmailAndPassword(adminEmail, adminPassword);
-        const userSnap = await db.ref('users/' + signInResult.user.uid).once('value');
-        if (!userSnap.val() || userSnap.val().role !== 'admin') {
-          await db.ref('users/' + signInResult.user.uid).set({
-            fn: 'Admin',
-            ln: 'ShipRemit',
-            email: adminEmail,
-            phone: '',
-            role: 'admin'
-          });
-        }
-        await auth.signOut();
-        await db.ref('adminSetup').set(true);
-        console.log('✅ Admin role verified');
-      } else {
-        console.log('Admin setup note:', e.message);
-      }
-    }
-  } catch (e) {
-    console.log('Admin setup skipped:', e.message);
-  }
-})();
 
 // Make functions global
 window.calcAmt = calcAmt;
