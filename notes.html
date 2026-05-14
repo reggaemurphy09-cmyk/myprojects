@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -32,7 +31,6 @@
     margin: 0 auto;
     background: var(--bg);
     position: relative;
-    overflow: hidden;
   }
 
   /* SCREENS */
@@ -41,11 +39,8 @@
     inset: 0;
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s cubic-bezier(.4,0,.2,1), opacity 0.3s;
-    will-change: transform;
   }
-  .screen.hidden { transform: translateX(100%); pointer-events: none; }
-  .screen.slide-left { transform: translateX(-30%); opacity: 0.5; pointer-events: none; }
+  .screen.hidden { display: none; }
 
   /* ── LIST ── */
   #list-screen { background: var(--bg); }
@@ -222,15 +217,14 @@
     font-weight: bold;
     color: var(--text);
     background: transparent;
-    resize: none;
     line-height: 1.3;
     margin-bottom: 4px;
     letter-spacing: -0.3px;
-    overflow: hidden;
     display: block;
     -webkit-appearance: none;
     -webkit-user-select: text;
     user-select: text;
+    touch-action: manipulation;
   }
   #note-title::placeholder { color: #d8d0c0; }
   .editor-rule {
@@ -434,13 +428,11 @@
 
   .hidden { display: none !important; }
 </style>
-
 </head>
 <body>
 <div class="app">
 
   <!-- LIST SCREEN -->
-
   <div class="screen" id="list-screen">
     <div class="list-header">
       <div class="app-title">My <em>Notes</em></div>
@@ -455,7 +447,6 @@
   </div>
 
   <!-- EDITOR SCREEN -->
-
   <div class="screen hidden" id="editor-screen">
     <div class="topbar">
       <button class="back-btn" id="editor-back">‹ Notes</button>
@@ -463,14 +454,13 @@
       <button class="ai-open-btn" id="open-ai-btn">✦ AI</button>
     </div>
     <div class="editor-scroll">
-      <textarea id="note-title" rows="1" placeholder="Title"></textarea>
+      <input id="note-title" type="text" placeholder="Title" autocomplete="off" autocorrect="on" autocapitalize="sentences">
       <div class="editor-rule"></div>
       <textarea id="note-body" rows="6" placeholder="Start writing…"></textarea>
     </div>
   </div>
 
   <!-- AI SCREEN -->
-
   <div class="screen hidden" id="ai-screen">
     <div class="ai-topbar">
       <button class="back-btn" id="ai-back">‹ Back</button>
@@ -572,7 +562,6 @@ function openNote(id) {
   if (!note) return;
   $('note-title').value = note.title;
   $('note-body').value = note.body;
-  autoResize($('note-title'));
   autoResize($('note-body'));
   updateWordCount();
   showScreen('editor-screen');
@@ -705,7 +694,7 @@ $('editor-back').addEventListener('click', () => {
 $('open-ai-btn').addEventListener('click', openAI);
 $('ai-back').addEventListener('click', () => showScreen('editor-screen'));
 
-$('note-title').addEventListener('input', () => { autoResize($('note-title')); updateActiveNote(); });
+$('note-title').addEventListener('input', () => { updateActiveNote(); });
 $('note-body').addEventListener('input', () => { autoResize($('note-body')); updateActiveNote(); });
 
 $('search-input').addEventListener('input', (e) => {
@@ -740,6 +729,5 @@ $('discard-btn').addEventListener('click', resetAIResult);
   renderList();
 })();
 </script>
-
 </body>
 </html>
