@@ -1,0 +1,660 @@
+import { useState, useEffect, useRef, useCallback } from “react”;
+
+const generateId = () => Math.random().toString(36).substr(2, 9);
+
+const timeAgo = (iso) => {
+const diff = Date.now() - new Date(iso).getTime();
+const mins = Math.floor(diff / 60000);
+if (mins < 1) return “just now”;
+if (mins < 60) return `${mins}m ago`;
+const hrs = Math.floor(mins / 60);
+if (hrs < 24) return `${hrs}h ago`;
+return `${Math.floor(hrs / 24)}d ago`;
+};
+
+const QUICK_PROMPTS = [“Summarize”, “Improve writing”, “Expand ideas”, “Fix grammar”, “Make bullet points”, “Make concise”];
+
+export default function NotesApp() {
+const [notes, setNotes] = useState([
+{ id: “welcome”, title: “Welcome ✦”, body: “Tap a note to edit it, or tap + to create a new one.\n\nUse the ✦ AI button while editing to get writing help.”, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+]);
+const [view, setView] = useState(“list”); // “list” | “editor” | “ai”
+const [activeId, setActiveId] = useState(null);
+const [search, setSearch] = useState(””);
+const [aiPrompt, setAiPrompt] = useState(””);
+const [aiLoading, setAiLoading] = useState(false);
+const [aiResult, setAiResult] = useState(””);
+const titleRef = useRef(null);
+const bodyRef = useRef(null);
+
+// Persist to window.storage
+useEffect(() => {
+(async () => {
+try {
+const saved = await window.storage.get(“notes_v1”);
+if (saved?.value) setNotes(JSON.parse(saved.value));
+} catch {}
+})();
+}, []);
+
+useEffect(() => {
+(async () => {
+try {
+await window.storage.set(“notes_v1”, JSON.stringify(notes));
+} catch {}
+})();
+}, [notes]);
+
+const activeNote = notes.find((n) => n.id === activeId);
+
+const filtered = notes.filter((n) => {
+const q = search.toLowerCase();
+return !q || n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q);
+});
+
+const openNote = (id) => {
+setActiveId(id);
+setAiResult(””);
+setAiPrompt(””);
+setView(“editor”);
+};
+
+const createNote = () => {
+const note = { id: generateId(), title: “”, body: “”, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+setNotes((p) => [note, …p]);
+setActiveId(note.id);
+setAiResult(””);
+setAiPrompt(””);
+setView(“editor”);
+setTimeout(() => titleRef.current?.focus(), 100);
+};
+
+const updateNote = useCallback((field, value) => {
+setNotes((p) => p.map((n) => n.id === activeId ? { …n, [field]: value, updatedAt: new Date().toISOString() } : n));
+}, [activeId]);
+
+const deleteNote = (id) => {
+setNotes((p) => p.filter((n) => n.id !== id));
+if (activeId === id) { setActiveId(null); setView(“list”); }
+};
+
+const callAI = async (prompt) => {
+if (!activeNote || !prompt.trim()) return;
+setAiLoading(true);
+setAiResult(””);
+try {
+const res = await fetch(“https://api.anthropic.com/v1/messages”, {
+method: “POST”,
+headers: { “Content-Type”: “application/json” },
+body: JSON.stringify({
+model: “claude-sonnet-4-20250514”,
+max_tokens: 1000,
+system: “You are a concise writing assistant. Respond directly without preamble or meta-commentary.”,
+messages: [{ role: “user”, content: `Note title: ${activeNote.title || "(untitled)"}\n\nNote:\n${activeNote.body || "(empty)"}\n\nRequest: ${prompt}` }],
+}),
+});
+const data = await res.json();
+setAiResult(data.content?.find((b) => b.type === “text”)?.text || “No response.”);
+} catch {
+setAiResult(“Could not reach AI. Please try again.”);
+}
+setAiLoading(false);
+};
+
+const applyAI = () => {
+if (!aiResult || !activeNote) return;
+updateNote(“body”, (activeNote.body ? activeNote.body + “\n\n” : “”) + aiResult);
+setAiResult(””);
+setAiPrompt(””);
+setView(“editor”);
+};
+
+const wordCount = activeNote?.body?.trim().split(/\s+/).filter(Boolean).length || 0;
+
+return (
+<>
+<style>{`
+@import url(‘https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap’);
+
+```
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body { background: #f7f4ef; }
+
+    .app {
+      height: 100dvh;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      background: #f7f4ef;
+      display: flex;
+      flex-direction: column;
+      font-family: 'DM Sans', sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ── LIST VIEW ── */
+    .list-view {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .list-header {
+      padding: 56px 24px 16px;
+      background: #f7f4ef;
+    }
+    .list-title {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 32px;
+      font-weight: 600;
+      color: #1a1814;
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+    }
+    .list-title em { color: #b07d4a; font-style: italic; }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #edeae3;
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+    .search-icon { color: #a09880; font-size: 16px; }
+    .search-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: #1a1814;
+    }
+    .search-input::placeholder { color: #a09880; }
+
+    .notes-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 16px 100px;
+    }
+
+    .note-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      transition: transform 0.1s, box-shadow 0.1s;
+      position: relative;
+      -webkit-user-select: none;
+    }
+    .note-card:active { transform: scale(0.98); box-shadow: 0 0 0 rgba(0,0,0,0); }
+    .note-card-title {
+      font-family: 'Lora', serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: #1a1814;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .note-card-preview {
+      font-size: 13px;
+      color: #9a9080;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 8px;
+    }
+    .note-card-meta {
+      font-size: 12px;
+      color: #c0b8a8;
+    }
+    .note-delete {
+      position: absolute;
+      top: 12px; right: 14px;
+      background: none;
+      border: none;
+      color: #d0c8b8;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+    }
+    .note-delete:active { color: #c06060; }
+
+    .fab {
+      position: fixed;
+      bottom: 32px;
+      right: 50%;
+      transform: translateX(50%);
+      width: 56px; height: 56px;
+      background: #b07d4a;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(176,125,74,0.4);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+      z-index: 10;
+    }
+    .fab:active { transform: translateX(50%) scale(0.93); box-shadow: 0 2px 10px rgba(176,125,74,0.3); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #c0b8a8;
+    }
+    .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
+
+    /* ── EDITOR VIEW ── */
+    .editor-view {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: #fff;
+    }
+
+    .editor-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 52px 20px 14px;
+      background: #fff;
+      border-bottom: 1px solid #f0ece4;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: #b07d4a;
+      font-size: 15px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      display: flex; align-items: center; gap: 4px;
+      padding: 6px 0;
+    }
+    .editor-meta { font-size: 12px; color: #c0b8a8; }
+    .ai-btn {
+      background: #fdf6ed;
+      border: 1px solid #e8d9c4;
+      color: #b07d4a;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 5px;
+      transition: background 0.15s;
+    }
+    .ai-btn:active { background: #f5e9d4; }
+
+    .editor-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 24px 120px;
+    }
+
+    .title-field {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-family: 'Lora', Georgia, serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: #1a1814;
+      background: transparent;
+      resize: none;
+      line-height: 1.3;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+    .title-field::placeholder { color: #d8d0c0; }
+
+    .editor-divider {
+      width: 32px; height: 2px;
+      background: #b07d4a;
+      border-radius: 1px;
+      margin: 12px 0 18px;
+    }
+
+    .body-field {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 300;
+      color: #4a4540;
+      background: transparent;
+      resize: none;
+      line-height: 1.75;
+      min-height: 200px;
+    }
+    .body-field::placeholder { color: #d8d0c0; }
+
+    /* ── AI VIEW ── */
+    .ai-view {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: #f7f4ef;
+    }
+
+    .ai-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 52px 20px 14px;
+      background: #f7f4ef;
+      border-bottom: 1px solid #e8e0d4;
+    }
+    .ai-topbar-title {
+      font-family: 'Lora', serif;
+      font-size: 18px;
+      font-style: italic;
+      color: #b07d4a;
+    }
+
+    .ai-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 20px 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ai-note-preview {
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      border-left: 3px solid #b07d4a;
+    }
+    .ai-note-preview-title {
+      font-family: 'Lora', serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1814;
+      margin-bottom: 4px;
+    }
+    .ai-note-preview-body {
+      font-size: 13px;
+      color: #9a9080;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .quick-label { font-size: 12px; color: #a09880; text-transform: uppercase; letter-spacing: 0.8px; }
+    .quick-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .quick-chip {
+      background: #fff;
+      border: 1px solid #e8e0d4;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #6a6050;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      text-align: left;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .quick-chip:active { background: #fdf6ed; border-color: #b07d4a; color: #b07d4a; }
+
+    .ai-result-box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      border-left: 3px solid #b07d4a;
+      font-size: 15px;
+      color: #3a3530;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+    }
+
+    .ai-result-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .apply-btn {
+      flex: 1;
+      background: #b07d4a;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 15px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+    }
+    .apply-btn:active { background: #9a6a38; }
+    .discard-btn {
+      background: #edeae3;
+      color: #6a6050;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 18px;
+      font-size: 15px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+    }
+    .discard-btn:active { background: #e0dcd4; }
+
+    .loading-ring {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      gap: 8px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #b07d4a;
+      animation: pulse 1.2s infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+
+    .ai-input-bar {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      padding: 12px 16px 28px;
+      background: #f7f4ef;
+      border-top: 1px solid #e8e0d4;
+      display: flex;
+      gap: 10px;
+    }
+    .ai-input {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #e8e0d4;
+      border-radius: 22px;
+      padding: 11px 16px;
+      font-size: 15px;
+      font-family: 'DM Sans', sans-serif;
+      color: #1a1814;
+      outline: none;
+    }
+    .ai-input::placeholder { color: #c0b8a8; }
+    .ai-send {
+      background: #b07d4a;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 44px; height: 44px;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      align-self: center;
+    }
+    .ai-send:disabled { background: #e0d8cc; }
+    .ai-send:active { background: #9a6a38; }
+  `}</style>
+
+  <div className="app">
+
+    {/* ── LIST VIEW ── */}
+    {view === "list" && (
+      <div className="list-view">
+        <div className="list-header">
+          <div className="list-title">My <em>Notes</em></div>
+          <div className="search-bar">
+            <span className="search-icon">⌕</span>
+            <input
+              className="search-input"
+              placeholder="Search…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && <span onClick={() => setSearch("")} style={{ color: "#a09880", cursor: "pointer" }}>✕</span>}
+          </div>
+        </div>
+
+        <div className="notes-scroll">
+          {filtered.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">📝</div>
+              <p>{search ? "No notes found" : "Tap + to write your first note"}</p>
+            </div>
+          ) : filtered.map((note) => (
+            <div key={note.id} className="note-card" onClick={() => openNote(note.id)}>
+              <div className="note-card-title">{note.title || "Untitled"}</div>
+              <div className="note-card-preview">{note.body?.slice(0, 80) || "Empty note"}</div>
+              <div className="note-card-meta">{timeAgo(note.updatedAt)}</div>
+              <button className="note-delete" onClick={(e) => { e.stopPropagation(); deleteNote(note.id); }}>✕</button>
+            </div>
+          ))}
+        </div>
+
+        <button className="fab" onClick={createNote}>＋</button>
+      </div>
+    )}
+
+    {/* ── EDITOR VIEW ── */}
+    {view === "editor" && activeNote && (
+      <div className="editor-view">
+        <div className="editor-topbar">
+          <button className="back-btn" onClick={() => setView("list")}>‹ Notes</button>
+          <span className="editor-meta">{wordCount > 0 ? `${wordCount} words` : ""}</span>
+          <button className="ai-btn" onClick={() => setView("ai")}>✦ AI</button>
+        </div>
+        <div className="editor-scroll">
+          <textarea
+            ref={titleRef}
+            className="title-field"
+            placeholder="Title"
+            value={activeNote.title}
+            onChange={(e) => updateNote("title", e.target.value)}
+            rows={1}
+            onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
+          />
+          <div className="editor-divider" />
+          <textarea
+            ref={bodyRef}
+            className="body-field"
+            placeholder="Start writing…"
+            value={activeNote.body}
+            onChange={(e) => updateNote("body", e.target.value)}
+            onInput={(e) => { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }}
+          />
+        </div>
+      </div>
+    )}
+
+    {/* ── AI VIEW ── */}
+    {view === "ai" && activeNote && (
+      <div className="ai-view">
+        <div className="ai-topbar">
+          <button className="back-btn" onClick={() => setView("editor")}>‹ Back</button>
+          <span className="ai-topbar-title">✦ AI Assistant</span>
+          <div style={{ width: 60 }} />
+        </div>
+
+        <div className="ai-scroll">
+          {/* Note preview */}
+          <div className="ai-note-preview">
+            <div className="ai-note-preview-title">{activeNote.title || "Untitled"}</div>
+            <div className="ai-note-preview-body">{activeNote.body || "(empty note)"}</div>
+          </div>
+
+          {/* Quick prompts */}
+          {!aiLoading && !aiResult && (
+            <>
+              <div className="quick-label">Quick actions</div>
+              <div className="quick-grid">
+                {QUICK_PROMPTS.map((q) => (
+                  <button key={q} className="quick-chip" onClick={() => { setAiPrompt(q); callAI(q); }}>
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Loading */}
+          {aiLoading && (
+            <div className="loading-ring">
+              <div className="dot" /><div className="dot" /><div className="dot" />
+            </div>
+          )}
+
+          {/* Result */}
+          {aiResult && !aiLoading && (
+            <>
+              <div className="ai-result-box">{aiResult}</div>
+              <div className="ai-result-actions">
+                <button className="apply-btn" onClick={applyAI}>Add to note</button>
+                <button className="discard-btn" onClick={() => { setAiResult(""); setAiPrompt(""); }}>Discard</button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Input bar */}
+        <div className="ai-input-bar">
+          <input
+            className="ai-input"
+            placeholder="Ask anything about this note…"
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && aiPrompt.trim()) callAI(aiPrompt); }}
+          />
+          <button
+            className="ai-send"
+            disabled={aiLoading || !aiPrompt.trim()}
+            onClick={() => callAI(aiPrompt)}
+          >↑</button>
+        </div>
+      </div>
+    )}
+
+  </div>
+</>
+```
+
+);
+}
